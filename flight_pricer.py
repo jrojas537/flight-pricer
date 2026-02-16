@@ -3,6 +3,8 @@ import click
 import yaml
 import requests
 import json
+from datetime import datetime
+from tabulate import tabulate
 
 CONFIG_DIR = os.path.expanduser("~/.config/flight-pricer")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.yaml")
@@ -16,6 +18,61 @@ def get_api_key():
             return config.get('api_key')
     except (FileNotFoundError, yaml.YAMLError):
         return None
+
+def format_datetime(dt_string):
+    """Formats ISO datetime string to a readable format."""
+    if not dt_string:
+        return "N/A"
+    dt_obj = datetime.fromisoformat(dt_string)
+    return dt_obj.strftime('%Y-%m-%d %I:%M %p')
+
+def format_duration(duration_string):
+    """Formats ISO 8601 duration string like 'PT2H38M' to '2h 38m'."""
+    if not duration_string or not duration_string.startswith('PT'):
+        return "N/A"
+    duration_string = duration_string[2:]
+    h_part = "0h"
+    m_part = "0m"
+    if 'H' in duration_string:
+        parts = duration_string.split('H')
+        h_part = f"{parts[0]}h"
+        duration_string = parts[1]
+    if 'M' in duration_string:
+        m_part = f"{duration_string.replace('M', '')}m"
+    return f"{h_part} {m_part}"
+
+
+def display_offers(offers):
+    """Parses and displays flight offers in a table."""
+    headers = ["Airline", "Flight No.", "Depart", "Arrive", "Duration", "Price"]
+    table_data = []
+
+    for offer in offers:
+        airline = offer['owner']['name']
+        price = f"{offer['total_amount']} {offer['total_currency']}"
+        
+        # Assuming one slice for now for simplicity
+        if offer['slices']:
+            slice_info = offer['slices'][0]
+            duration = format_duration(slice_info.get('duration'))
+            if slice_info['segments']:
+                segment = slice_info['segments'][0]
+                flight_no = f"{segment['marketing_carrier']['iata_code']}{segment['marketing_carrier_flight_number']}"
+                depart = format_datetime(segment.get('departing_at'))
+                arrive = format_datetime(segment.get('arriving_at'))
+            else:
+                flight_no, depart, arrive = "N/A", "N/A", "N/A"
+        else:
+            duration, flight_no, depart, arrive = "N/A", "N/A", "N/A", "N/A"
+            
+        table_data.append([airline, flight_no, depart, arrive, duration, price])
+
+    if not table_data:
+        click.echo("No flight offers found.")
+        return
+
+    click.echo(tabulate(table_data, headers=headers, tablefmt="grid"))
+
 
 @click.group()
 def cli():
@@ -77,18 +134,18 @@ def search(from_iata, to_iata, depart_date, return_date, passengers, max_connect
         }
     }
 
-    # Filter out None values from payload to keep it clean
     if not cabin_class:
         del payload['data']['cabin_class']
     
-    click.echo("Sending request to Duffel API...")
+    click.echo("Searching for flights...")
     
     try:
         response = requests.post(API_BASE_URL, headers=headers, json=payload)
-        response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
+        response.raise_for_status()
         
-        click.echo("--- API Response ---")
-        click.echo(json.dumps(response.json(), indent=2))
+        response_data = response.json()
+        offers = response_data.get('data', {}).get('offers', [])
+        display_offers(offers)
 
     except requests.exceptions.HTTPError as err:
         click.echo(f"HTTP Error: {err}")
@@ -99,7 +156,6 @@ def search(from_iata, to_iata, depart_date, return_date, passengers, max_connect
             click.echo(err.response.text)
     except requests.exceptions.RequestException as e:
         click.echo(f"An error occurred: {e}")
-
 
 if __name__ == '__main__':
     cli()
