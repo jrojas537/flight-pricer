@@ -1,6 +1,6 @@
 {
   "name": "flight-pricer",
   "version": "1.0.0",
-  "description": "A CLI skill to search for flight options using the Duffel API.",
-  "author": "J R <jrojas537@gmail.com>"
+  "description": "A CLI for searching flight prices via the Duffel API.",
+  "author": "jrojas537@gmail.com"
 }

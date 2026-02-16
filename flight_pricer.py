@@ -100,14 +100,19 @@ def set(api_key):
 @click.option('--depart', 'depart_date', required=True, help='Departure date (YYYY-MM-DD).')
 @click.option('--return', 'return_date', help='Return date for round-trip (YYYY-MM-DD).')
 @click.option('--passengers', default=1, type=int, help='Number of passengers.')
-@click.option('--max-stops', 'max_connections', default=0, type=int, help='Maximum number of stops (connections).')
+@click.option('--max-stops', 'max_connections', default=None, type=int, help='Maximum number of stops (0 for non-stop).')
+@click.option('--non-stop', 'non_stop_flag', is_flag=True, help='Alias for --max-stops 0.')
 @click.option('--cabin', 'cabin_class', type=click.Choice(['economy', 'business', 'first', 'premium_economy']), help='Cabin class.')
-def search(from_iata, to_iata, depart_date, return_date, passengers, max_connections, cabin_class):
+def search(from_iata, to_iata, depart_date, return_date, passengers, max_connections, non_stop_flag, cabin_class):
     """Searches for flight prices with the specified criteria."""
     api_key = get_api_key()
     if not api_key:
         click.echo("API key not found. Please configure it using 'flight-pricer config set --api-key YOUR_KEY'")
         return
+
+    final_max_connections = max_connections
+    if non_stop_flag:
+        final_max_connections = 0
 
     headers = {
         "Accept-Encoding": "gzip",
@@ -128,14 +133,14 @@ def search(from_iata, to_iata, depart_date, return_date, passengers, max_connect
     payload = {
         "data": {
             "slices": slices,
-            "passengers": passenger_list,
-            "cabin_class": cabin_class,
-            "max_connections": max_connections
+            "passengers": passenger_list
         }
     }
-
-    if not cabin_class:
-        del payload['data']['cabin_class']
+    
+    if cabin_class:
+        payload['data']['cabin_class'] = cabin_class
+    if final_max_connections is not None:
+        payload['data']['max_connections'] = final_max_connections
     
     click.echo("Searching for flights...")
     

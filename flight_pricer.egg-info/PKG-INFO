@@ -1,0 +1,87 @@
+Metadata-Version: 2.4
+Name: flight-pricer
+Version: 1.0.0
+Summary: A CLI for searching flight prices via the Duffel API.
+Author-email: J R <jrojas537@gmail.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+Requires-Dist: click
+Requires-Dist: requests
+Requires-Dist: pyyaml
+Requires-Dist: tabulate
+
+# Flight Pricer CLI
+
+`flight-pricer` is a command-line interface (CLI) skill for searching flight options using the Duffel Flights API. It provides a simple, table-based output of flight details that can be easily shared.
+
+## Features
+
+-   Search for one-way and round-trip flights.
+-   Filter by departure/arrival airports, dates, and cabin class.
+-   Specify the number of passengers and maximum connections.
+-   Securely stores your API key.
+-   Clean, readable table output.
+
+## Prerequisites
+
+-   Python 3.10+
+-   pip
+-   A Duffel API Key ([Get one here](https://duffel.com/))
+
+## Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/jrojas537/flight-pricer.git
+    cd flight-pricer
+    ```
+
+2.  **Create a Python virtual environment:**
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Configuration
+
+Before you can search, you need to set your Duffel API key.
+
+```bash
+python flight_pricer.py config set --api-key YOUR_DUFFEL_API_KEY
+```
+
+This command will securely store your key in `~/.config/flight-pricer/config.yaml`.
+
+## Usage
+
+The primary command is `search`. It takes several options to define your flight search.
+
+### Arguments
+
+-   `--from`: (Required) Departure airport IATA code (e.g., `JFK`).
+-   `--to`: (Required) Arrival airport IATA code (e.g., `LAX`).
+-   `--depart`: (Required) Departure date in `YYYY-MM-DD` format.
+-   `--return`: (Optional) Return date for a round-trip search.
+-   `--passengers`: (Optional) Number of passengers. Defaults to `1`.
+-   `--max-stops`: (Optional) Maximum number of stops (connections). Defaults to `0` (nonstop).
+-   `--cabin`: (Optional) Cabin class. Choose from `economy`, `business`, `first`, `premium_economy`.
+
+### Examples
+
+**One-Way Economy Flight:**
+```bash
+python flight_pricer.py search --from DTW --to MCO --depart 2026-07-20 --cabin economy
+```
+
+**Round-Trip First Class for 2 People:**
+```bash
+python flight_pricer.py search --from LGA --to MIA --depart 2026-03-27 --return 2026-03-29 --passengers 2 --max-stops 0 --cabin first
+```
