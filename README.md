@@ -1,48 +1,72 @@
-# flight-pricer
+# Flight Pricer CLI
 
-A command-line interface (CLI) tool to search for flight prices. This tool is designed to be used as an OpenClaw skill.
+`flight-pricer` is a command-line interface (CLI) skill for searching flight options using the Duffel Flights API. It provides a simple, table-based output of flight details that can be easily shared.
 
-## Description
+## Features
 
-This skill allows a user to query a flight search API (like Duffel) to find flight options based on various criteria such as dates, destinations, number of passengers, and cabin class.
+-   Search for one-way and round-trip flights.
+-   Filter by departure/arrival airports, dates, and cabin class.
+-   Specify the number of passengers and maximum connections.
+-   Securely stores your API key.
+-   Clean, readable table output.
 
-The primary goal is to provide a clean, structured output that can be easily passed to a travel agent for booking.
+## Prerequisites
 
-## Installation & Usage
+-   Python 3.10+
+-   pip
+-   A Duffel API Key ([Get one here](https://duffel.com/))
 
-### Prerequisites
-- Python 3.x
-- An API key from a flight search provider.
+## Installation
 
-### Setup
-1.  **Create and Activate Virtual Environment:**
+1.  **Clone the repository:**
     ```bash
-    # Create the virtual environment
-    python3 -m venv .venv
-
-    # Activate it (on macOS/Linux)
-    source .venv/bin/activate
-    # On Windows, use: .venv\Scripts\activate
+    git clone https://github.com/jrojas537/flight-pricer.git
+    cd flight-pricer
     ```
 
-2.  **Install Dependencies:**
+2.  **Create a Python virtual environment:**
     ```bash
-    # With the virtual environment active
+    python -m venv .venv
+    source .venv/bin/activate
+    ```
+
+3.  **Install dependencies:**
+    ```bash
     pip install -r requirements.txt
     ```
 
-3.  **Configure API Key:**
-    ```bash
-    # With the virtual environment active
-    python flight_pricer.py config set --api-key <YOUR_API_KEY>
-    ```
+## Configuration
 
-### Searching for Flights
+Before you can search, you need to set your Duffel API key.
+
 ```bash
-# With the virtual environment active
-python flight_pricer.py search --from DTW --to MCO --depart 2026-07-20 --passengers 2
+python flight_pricer.py config set --api-key YOUR_DUFFEL_API_KEY
 ```
-This will output a summary of the flight search parameters. Full API integration is pending.
 
-## Development Status
-This project is in its initial scaffolding phase. The core CLI structure is in place, but it does not yet make live API calls.
+This command will securely store your key in `~/.config/flight-pricer/config.yaml`.
+
+## Usage
+
+The primary command is `search`. It takes several options to define your flight search.
+
+### Arguments
+
+-   `--from`: (Required) Departure airport IATA code (e.g., `JFK`).
+-   `--to`: (Required) Arrival airport IATA code (e.g., `LAX`).
+-   `--depart`: (Required) Departure date in `YYYY-MM-DD` format.
+-   `--return`: (Optional) Return date for a round-trip search.
+-   `--passengers`: (Optional) Number of passengers. Defaults to `1`.
+-   `--max-stops`: (Optional) Maximum number of stops (connections). Defaults to `0` (nonstop).
+-   `--cabin`: (Optional) Cabin class. Choose from `economy`, `business`, `first`, `premium_economy`.
+
+### Examples
+
+**One-Way Economy Flight:**
+```bash
+python flight_pricer.py search --from DTW --to MCO --depart 2026-07-20 --cabin economy
+```
+
+**Round-Trip First Class for 2 People:**
+```bash
+python flight_pricer.py search --from LGA --to MIA --depart 2026-03-27 --return 2026-03-29 --passengers 2 --max-stops 0 --cabin first
+```

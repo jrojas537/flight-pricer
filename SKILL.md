@@ -1,36 +1,71 @@
-# SKILL.md for flight-pricer
+<!--
+This is the documentation for the AI agent.
+It should be comprehensive and detailed.
+-->
+# Flight Pricer Skill
 
+**Description:**
+This skill provides a command-line interface to search for flight options using the Duffel API. It returns a formatted table of flight offers based on user-specified criteria.
+
+**Metadata:**
+```yaml
 name: flight-pricer
-description: A CLI tool to search for flight prices using a flight search API.
-author: jrojas537@gmail.com
-version: "0.1.0"
+version: 1.0.0
+author: J R
+requires:
+  bins: ["python"]
+```
 
-metadata:
-  requires:
-    bins: ["python3"]
-    pips: ["click", "requests", "pyyaml"]
+## Setup & Dependencies
 
-usage: |
-  The main entrypoint for the skill is the `flight-pricer` command.
+The skill is executed via a Python script within a virtual environment.
+**Execution Command:** `flight-pricer/.venv/bin/python flight-pricer/flight_pricer.py [COMMAND]`
 
-  **NOTE:** This skill is under active development.
+## Commands
 
-  ## Configure the API Key
+### `config`
+Manages the skill's configuration.
 
-  You must configure the skill with a valid API key from the chosen provider (e.g., Duffel).
+#### `config set`
+Securely saves the Duffel API key. This is a mandatory first step.
 
-  `flight-pricer/.venv/bin/python flight_pricer.py config set --api-key <YOUR_API_KEY>`
+**Usage:**
+```bash
+flight-pricer/.venv/bin/python flight-pricer/flight_pricer.py config set --api-key <your_api_key>
+```
 
-  ## Search for Flights
+**Arguments:**
+-   `--api-key` (string, required): The API key obtained from the Duffel developer dashboard.
 
-  Search for flight options with flexible parameters.
+---
 
-  `flight-pricer/.venv/bin/python flight_pricer.py search --from <IATA_CODE> --to <IATA_CODE> --depart <YYYY-MM-DD> [options]`
+### `search`
+Searches for flight offers based on the provided criteria and displays them in a table.
 
-  ### Search Options
-  * `--return <YYYY-MM-DD>`: For round-trip searches.
-  * `--passengers <COUNT>`: Number of passengers (default: 1).
-  * `--max-stops <COUNT>`: Maximum number of stops (default: 0).
-  * `--airline <IATA_CODE>`: Specify an airline (e.g., 'DL' for Delta).
-  * `--cabin <CLASS>`: 'economy', 'business', 'first'.
-  * `--flex-days <NUMBER>`: Search +/- days around the departure/return dates.
+**Usage:**
+```bash
+flight-pricer/.venv/bin/python flight-pricer/flight_pricer.py search [OPTIONS]
+```
+
+**Arguments:**
+-   `--from` (string, required): The IATA code for the departure airport (e.g., `DTW`, `JFK`).
+-   `--to` (string, required): The IATA code for the arrival airport (e.g., `MCO`, `LAX`).
+-   `--depart` (string, required): The departure date in `YYYY-MM-DD` format.
+-   `--return` (string, optional): The return date in `YYYY-MM-DD` format. If provided, the search will be for a round trip.
+-   `--passengers` (integer, optional): The number of passengers. Defaults to `1`.
+-   `--max-stops` (integer, optional): The maximum number of connections (stops) for the flight. Defaults to `0` (nonstop).
+-...
+-   `--cabin` (choice, optional): The desired cabin class.
+    -   **Allowed values:** `economy`, `business`, `first`, `premium_economy`.
+
+### Examples
+
+**Example 1: One-way, nonstop economy flight for one person.**
+```bash
+flight-pricer/.venv/bin/python flight-pricer/flight_pricer.py search --from DTW --to MCO --depart 2026-07-20 --cabin economy
+```
+
+**Example 2: Round-trip, nonstop, first-class flight for two people.**
+```bash
+flight-pricer/.venv/bin/python flight-pricer/flight_pricer.py search --from LGA --to MIA --depart 2026-03-27 --return 2026-03-29 --passengers 2 --max-stops 0 --cabin first
+```
