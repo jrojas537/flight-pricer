@@ -16,11 +16,11 @@ def config():
     pass
 
 @config.command()
-@click.option('--api-key', required=True, help='Your flight search API key.')
-def set(api-key):
+@click.option('--api-key', 'api_key', required=True, help='Your flight search API key.')
+def set(api_key):
     """Sets and saves the API key."""
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    config_data = {'api_key': api-key}
+    config_data = {'api_key': api_key}
     with open(CONFIG_FILE, 'w') as f:
         yaml.dump(config_data, f)
     click.echo(f"Configuration saved to {CONFIG_FILE}")
